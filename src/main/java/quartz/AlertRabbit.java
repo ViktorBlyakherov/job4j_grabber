@@ -12,26 +12,24 @@ import static org.quartz.SimpleScheduleBuilder.*;
 
 public class AlertRabbit {
 
-    private static int interval;
-
-    public static void init() {
+    public static Properties init() {
         try (InputStream in = AlertRabbit.class.getClassLoader().getResourceAsStream("rabbit.properties")) {
             Properties config = new Properties();
             config.load(in);
-            interval = Integer.parseInt(config.getProperty("rabbit.interval"));
+            return config;
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
     }
 
     public static void main(String[] args) {
-        init();
+        Properties config = init();
         try {
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
             scheduler.start();
             JobDetail job = newJob(Rabbit.class).build();
             SimpleScheduleBuilder times = simpleSchedule()
-                    .withIntervalInSeconds(interval)
+                    .withIntervalInSeconds(Integer.parseInt(config.getProperty("rabbit.interval")))
                     .repeatForever();
             Trigger trigger = newTrigger()
                     .startNow()
